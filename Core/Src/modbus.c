@@ -218,10 +218,9 @@ uint8_t get_rx_buffer(uint8_t index)
 {
 	if (index < MODBUS_RX_BUFFER_SIZE - 1)
 	{
-		uint8_t value = ((start_index + index) > (MODBUS_RX_BUFFER_SIZE - 1))?
+		return ((start_index + index) > (MODBUS_RX_BUFFER_SIZE - 1))?
 				modbus_rx_buffer[(start_index + index) - MODBUS_RX_BUFFER_SIZE] :
 				modbus_rx_buffer[start_index + index];
-		return value;
 	}
 	return 0xFF;
 }
@@ -479,7 +478,7 @@ int8_t edit_multiple_registers()
 		return modbus_exception(MB_ILLEGAL_DATA_ADDRESS);
 	}
 
-	if((first_register_address >= 3 && last_register_address <= 33))
+	if((first_register_address <= GPIO_READ) && (last_register_address >= GPIO_READ))
 	{
 		// Ensure that sensor values are restricted to read-only
 		return modbus_exception(MB_ILLEGAL_FUNCTION);
@@ -540,7 +539,7 @@ void handle_range(uint16_t holding_register)
 {
 	switch(holding_register)
 	{
-		case 0:
+		case MODBUS_ID:
 		{
 			if(holding_register_database[holding_register] > 0xFF)
 			{
@@ -548,7 +547,7 @@ void handle_range(uint16_t holding_register)
 			}
 			break;
 		}
-		case 1:
+		case MB_BAUD_RATE:
 		{
 			if(holding_register_database[holding_register] < 2)
 			{
@@ -557,22 +556,6 @@ void handle_range(uint16_t holding_register)
 			else if(holding_register_database[holding_register] > 9)
 			{
 				holding_register_database[holding_register] = 9;
-			}
-			break;
-		}
-		case 2:
-		{
-			if(holding_register_database[holding_register] > 1)
-			{
-				holding_register_database[holding_register] = 1;
-			}
-			break;
-		}
-		case 34 ... 36:
-		{
-			if(holding_register_database[holding_register] > 0x0FFF)
-			{
-				holding_register_database[holding_register] = 0x0FFF;
 			}
 			break;
 		}
